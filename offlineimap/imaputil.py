@@ -159,28 +159,36 @@ def imapsplit(imapstring):
                 break
     return retval
 
+def flagstring2flagset(flagstring):
+    """Convert string '(\\Draft Old)' into a flags set(['\\Draft', 'Old'])"""
+    imapflaglist = flagstring[1:-1].split()
+    return set(imapflaglist)
+
+def flagset2flagstring(flagset):
+    """Convert flags set(['\\Draft', 'Old']) into a string '(\\Draft Old)'"""
+    return '(' + ' '.join(flagset) + ')'
+
 flagmap = [('\\Seen', 'S'),
            ('\\Answered', 'R'),
            ('\\Flagged', 'F'),
            ('\\Deleted', 'T'),
            ('\\Draft', 'D')]
 
-def flagsimap2maildir(flagstring):
-    """Convert string '(\\Draft \\Deleted)' into a flags set(DR)"""
+def flagsimap2maildir(flags):
+    """Convert set([\\Draft, \\Deleted]) into a flags set(DR)"""
     retval = set()
-    imapflaglist = flagstring[1:-1].split()
     for imapflag, maildirflag in flagmap:
-        if imapflag in imapflaglist:
+        if imapflag in flags:
             retval.add(maildirflag)
     return retval
 
-def flagsmaildir2imap(maildirflaglist):
-    """Convert set of flags ([DR]) into a string '(\\Deleted \\Draft)'"""
-    retval = []
+def flagsmaildir2imap(maildirflags):
+    """Convert set of flags ([DR]) into a set([\\Draft, \\Deleted])"""
+    retval = set()
     for imapflag, maildirflag in flagmap:
-        if maildirflag in maildirflaglist:
-            retval.append(imapflag)
-    return '(' + ' '.join(sorted(retval)) + ')'
+        if maildirflag in maildirflags:
+            retval.add(imapflag)
+    return retval
 
 def uid_sequence(uidlist):
     """Collapse UID lists into shorter sequence sets

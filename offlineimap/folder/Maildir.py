@@ -21,6 +21,7 @@ import re
 import os
 from .Base import BaseFolder
 from threading import Lock
+from offlineimap import imaputil
 
 try:
     from hashlib import md5
@@ -126,9 +127,9 @@ class MaildirFolder(BaseFolder):
         for the respective element.  If flags are empty or cannot be
         detected, we return an empty flags list.
 
-        :returns: (prefix, UID, FMD5, flags). UID is a numeric "long"
-            type. flags is a set() of Maildir flags"""
-        prefix, uid, fmd5, flags = None, None, None, set()
+        :returns: (prefix, UID, FMD5, maildirflags). UID is a numeric "long"
+            type. maildirflags is a set() of Maildir flags"""
+        prefix, uid, fmd5, maildirflags = None, None, None, set()
         prefixmatch = self.re_prefixmatch.match(filename)
         if prefixmatch:
             prefix = prefixmatch.group(1)
@@ -144,8 +145,8 @@ class MaildirFolder(BaseFolder):
         if flagmatch:
             # Filter out all lowercase (custom maildir) flags. We don't
             # handle them yet.
-            flags = set((c for c in flagmatch.group(1) if not c.islower()))
-        return prefix, uid, fmd5, flags
+            maildirflags = set((c for c in flagmatch.group(1) if not c.islower()))
+        return prefix, uid, fmd5, maildirflags
 
     def _scanfolder(self):
         """Cache the message list from a Maildir.
@@ -175,7 +176,7 @@ class MaildirFolder(BaseFolder):
                         self.getfullname(), filepath)) > maxsize):
                 continue
 
-            (prefix, uid, fmd5, flags) = self._parse_filename(filename)
+            (prefix, uid, fmd5, maildirflags) = self._parse_filename(filename)
             if uid is None: # assign negative uid to upload it.
                 uid = nouidcounter
                 nouidcounter -= 1
@@ -188,7 +189,8 @@ class MaildirFolder(BaseFolder):
                 else:
                     uid = long(uidmatch.group(1))
             # 'filename' is 'dirannex/filename', e.g. cur/123,U=1,FMD5=1:2,S
-            retval[uid] = {'flags': flags, 'filename': filepath}
+            retval[uid] = {'flags': imaputil.flagsmaildir2imap(maildirflags),
+                           'filename': filepath}
         return retval
 
     def quickchanged(self, statusfolder):
@@ -200,7 +202,7 @@ class MaildirFolder(BaseFolder):
             return True
         # Also check for flag changes, it's quick on a Maildir
         for (uid, message) in self.getmessagelist().iteritems():
-            if message['flags'] != statusfolder.getmessageflags(uid):
+            if not(message['flags'] <= statusfolder.getmessageflags(uid)):
                 return True
         return False  #Nope, nothing changed
 
@@ -236,7 +238,7 @@ class MaildirFolder(BaseFolder):
         timeval, timeseq = gettimeseq()
         return '%d_%d.%d.%s,U=%d,FMD5=%s%s2,%s' % \
             (timeval, timeseq, os.getpid(), socket.gethostname(),
-             uid, self._foldermd5, self.infosep, ''.join(sorted(flags)))
+             ''.join(sorted(imaputil.flagsimap2maildir(flags))))
 
     def savemessage(self, uid, content, flags, rtime):
         """Writes a new message, with the specified uid.
@@ -306,7 +308,7 @@ class MaildirFolder(BaseFolder):
         oldfilename = self.messagelist[uid]['filename']
         dir_prefix, filename = os.path.split(oldfilename)
         # If a message has been seen, it goes into 'cur'
-        dir_prefix = 'cur' if 'S' in flags else 'new'
+        dir_prefix = 'cur' if '\\Seen' in flags else 'new'
 
         if flags != self.messagelist[uid]['flags']:
             # Flags have actually changed, construct new filename Strip
@@ -315,7 +317,8 @@ class MaildirFolder(BaseFolder):
             infomatch = self.re_flagmatch.search(filename)
             if infomatch:
                 filename = filename[:-len(infomatch.group())] #strip off
-            infostr = '%s2,%s' % (self.infosep, ''.join(sorted(flags)))
+            infostr = '%s2,%s' % (self.infosep,
+                                  ''.join(sorted(imaputil.flagsimap2maildir(flags))))
             filename += infostr
 
         newfilename = os.path.join(dir_prefix, filename)

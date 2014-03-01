@@ -195,7 +195,7 @@ class IMAPFolder(BaseFolder):
                                           minor = 1)
             else:
                 uid = long(options['UID'])
-                flags = imaputil.flagsimap2maildir(options['FLAGS'])
+                flags = imaputil.flagstring2flagset(options['FLAGS'])
                 rtime = imaplibutil.Internaldate2epoch(messagestr)
                 self.messagelist[uid] = {'uid': uid, 'flags': flags, 'time': rtime}
 
@@ -536,7 +536,7 @@ class IMAPFolder(BaseFolder):
                 #Do the APPEND
                 try:
                     (typ, dat) = imapobj.append(self.getfullname(),
-                                       imaputil.flagsmaildir2imap(flags),
+                                       imaputil.flagset2flagstring(flags),
                                        date, content)
                     # This should only catch 'NO' responses since append()
                     # will raise an exception for 'BAD' responses:
@@ -634,7 +634,7 @@ class IMAPFolder(BaseFolder):
                 self.ui.flagstoreadonly(self, [uid], flags)
                 return
             result = imapobj.uid('store', '%d' % uid, 'FLAGS',
-                                 imaputil.flagsmaildir2imap(flags))
+                                 imaputil.flagset2flagstring(flags))
             assert result[0] == 'OK', 'Error with store: ' + '. '.join(result[1])
         finally:
             self.imapserver.releaseconnection(imapobj)
@@ -643,7 +643,7 @@ class IMAPFolder(BaseFolder):
             self.messagelist[uid]['flags'] = flags
         else:
             flags = imaputil.flags2hash(imaputil.imapsplit(result)[1])['FLAGS']
-            self.messagelist[uid]['flags'] = imaputil.flagsimap2maildir(flags)
+            self.messagelist[uid]['flags'] = imaputil.flagstring2flagset(flags)
 
     def addmessageflags(self, uid, flags):
         self.addmessagesflags([uid], flags)
@@ -680,7 +680,7 @@ class IMAPFolder(BaseFolder):
             r = imapobj.uid('store',
                             imaputil.uid_sequence(uidlist),
                             operation + 'FLAGS',
-                            imaputil.flagsmaildir2imap(flags))
+                            imaputil.flagset2flagstring(flags))
             assert r[0] == 'OK', 'Error with store: ' + '. '.join(r[1])
             r = r[1]
         finally:
@@ -700,7 +700,7 @@ class IMAPFolder(BaseFolder):
                 continue
             flagstr = attributehash['FLAGS']
             uid = long(attributehash['UID'])
-            self.messagelist[uid]['flags'] = imaputil.flagsimap2maildir(flagstr)
+            self.messagelist[uid]['flags'] = imaputil.flagstring2flagset(flagstr)
             try:
                 needupdate.remove(uid)
             except ValueError:          # Let it slide if it's not in the list
