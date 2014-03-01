@@ -21,6 +21,16 @@ OfflineIMAP is a Free Software project licensed under the GNU General Public
 License version 2 (or later). You can download it for free, and you can modify
 it. In fact, you are encouraged to contribute to OfflineIMAP.
 
+
+This version has patches applied to allow syncing of all imap flags (including
+custom ones to the server and storing them in xattr filesystem extended
+attributes. The relevant patches are here:
+http://lists.alioth.debian.org/pipermail/offlineimap-project/2013-March/004567.html
+http://lists.alioth.debian.org/pipermail/offlineimap-project/2013-March/004569.html
+
+Note, this adds a dependency to pyxattr
+
+
 Documentation
 -------------
 
