@@ -55,7 +55,7 @@ class xattrMaildirFolder(MaildirFolder):
                 else:
                     uid = long(uidmatch.group(1))
             # 'filename' is 'dirannex/filename', e.g. cur/123,U=1,FMD5=1:2,S
-            retval[uid] = {'flags': set((xattr.get(os.path.join(self.getfullname(), newfilename),
+            retval[uid] = {'flags': set((xattr.get(os.path.join(self.getfullname(), filepath),
                                                    'org.offlineimap.flags',
                                                    namespace=xattr.NS_USER)).split()),
                            'filename': filepath}
