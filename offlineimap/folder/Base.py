@@ -498,15 +498,15 @@ class BaseFolder(object):
             self.ui.addingflags(uids, flag, dstfolder)
             if self.repository.account.dryrun:
                 continue #don't actually add in a dryrun
-            dstfolder.addmessagesflags(uids, set(flag))
-            statusfolder.addmessagesflags(uids, set(flag))
+            dstfolder.addmessagesflags(uids, set(flag.split()))
+            statusfolder.addmessagesflags(uids, set(flag.split()))
 
         for flag,uids in delflaglist.items():
             self.ui.deletingflags(uids, flag, dstfolder)
             if self.repository.account.dryrun:
                 continue #don't actually remove in a dryrun
-            dstfolder.deletemessagesflags(uids, set(flag))
-            statusfolder.deletemessagesflags(uids, set(flag))
+            dstfolder.deletemessagesflags(uids, set(flag.split()))
+            statusfolder.deletemessagesflags(uids, set(flag.split()))
 
     def syncmessagesto(self, dstfolder, statusfolder):
         """Syncs messages in this folder to the destination dstfolder.

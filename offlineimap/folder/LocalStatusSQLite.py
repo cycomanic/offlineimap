@@ -172,7 +172,9 @@ class LocalStatusSQLiteFolder(LocalStatusFolder):
         self.messagelist = {}
         cursor = self.connection.execute('SELECT id,flags from status')
         for row in cursor:
-                flags = set(row[1])
+                # need to do this to avoid sets with empty strings
+                flags = set([x for x in row[1].split(';') if x])
+                self.ui.info('*** sqlcachemessagelist flags:' +repr(flags))
                 self.messagelist[row[0]] = {'uid': row[0], 'flags': flags}
 
     def save(self):
@@ -237,7 +239,7 @@ class LocalStatusSQLiteFolder(LocalStatusFolder):
 
     def savemessageflags(self, uid, flags):
         self.messagelist[uid] = {'uid': uid, 'flags': flags}
-        flags = ''.join(sorted(flags))
+        flags = ';'.join(sorted(flags))
         self.sql_write('UPDATE status SET flags=? WHERE id=?',(flags,uid))
 
     def deletemessage(self, uid):

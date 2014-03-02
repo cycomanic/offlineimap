@@ -75,7 +75,7 @@ class LocalStatusFolder(BaseFolder):
             try:
                 uid, flags = line.split(':')
                 uid = long(uid)
-                flags = set(flags)
+                flags = set([x for x in flags.split(';') if x])
             except ValueError as e:
                 errstr = "Corrupt line '%s' in cache file '%s'" % \
                     (line, self.filename)
@@ -90,7 +90,7 @@ class LocalStatusFolder(BaseFolder):
             file.write(magicline + "\n")
             for msg in self.messagelist.values():
                 flags = msg['flags']
-                flags = ''.join(sorted(flags))
+                flags = ';'.join(sorted(flags))
                 file.write("%s:%s\n" % (msg['uid'], flags))
             file.flush()
             if self.doautosave:
