@@ -174,7 +174,6 @@ class LocalStatusSQLiteFolder(LocalStatusFolder):
         for row in cursor:
                 # need to do this to avoid sets with empty strings
                 flags = set([x for x in row[1].split(';') if x])
-                self.ui.info('*** sqlcachemessagelist flags:' +repr(flags))
                 self.messagelist[row[0]] = {'uid': row[0], 'flags': flags}
 
     def save(self):
@@ -232,7 +231,7 @@ class LocalStatusSQLiteFolder(LocalStatusFolder):
             return uid
 
         self.messagelist[uid] = {'uid': uid, 'flags': flags, 'time': rtime}
-        flags = ''.join(sorted(flags))
+        flags = ';'.join(sorted(flags))
         self.sql_write('INSERT INTO status (id,flags) VALUES (?,?)',
                          (uid,flags))
         return uid
