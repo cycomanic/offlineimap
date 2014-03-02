@@ -238,6 +238,7 @@ class MaildirFolder(BaseFolder):
         timeval, timeseq = gettimeseq()
         return '%d_%d.%d.%s,U=%d,FMD5=%s%s2,%s' % \
             (timeval, timeseq, os.getpid(), socket.gethostname(),
+             uid, self._foldermd5, self.infosep,
              ''.join(sorted(imaputil.flagsimap2maildir(flags))))
 
     def savemessage(self, uid, content, flags, rtime):
