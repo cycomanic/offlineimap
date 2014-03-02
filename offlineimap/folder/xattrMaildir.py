@@ -109,9 +109,9 @@ class xattrMaildirFolder(MaildirFolder):
                                        oldfilename, newfilename, e[1]),
                                        OfflineImapError.ERROR.FOLDER)
 
-            self.messagelist[uid]['flags'] = flags
             self.messagelist[uid]['filename'] = newfilename
 
+        self.messagelist[uid]['flags'] = flags
         xattr.set(os.path.join(self.getfullname(), newfilename),
                   'org.offlineimap.flags', ' '.join(flags),
                   namespace=xattr.NS_USER)
