@@ -495,14 +495,14 @@ class BaseFolder(object):
                 delflaglist[flag].append(uid)
 
         for flag, uids in addflaglist.items():
-            self.ui.addingflags(uids, flag, dstfolder)
+            self.ui.addingflags(uids, [flag], dstfolder)
             if self.repository.account.dryrun:
                 continue #don't actually add in a dryrun
             dstfolder.addmessagesflags(uids, set(flag.split()))
             statusfolder.addmessagesflags(uids, set(flag.split()))
 
         for flag,uids in delflaglist.items():
-            self.ui.deletingflags(uids, flag, dstfolder)
+            self.ui.deletingflags(uids, [flag], dstfolder)
             if self.repository.account.dryrun:
                 continue #don't actually remove in a dryrun
             dstfolder.deletemessagesflags(uids, set(flag.split()))
